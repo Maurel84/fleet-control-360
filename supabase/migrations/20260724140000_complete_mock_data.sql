@@ -127,7 +127,6 @@ from (values
 join public.agencies a on a.code = x.agency_code and a.organization_id = '11111111-1111-1111-1111-111111111111';
 
 -- 7. VEHICLE DOCUMENTS
-insert into public.vehicle_documents (organization_id, vehicle_id, type, document_number, issuer, start_date, expiry_date, cost, status, file_url, reminder_enabled, responsible)
 select '11111111-1111-1111-1111-111111111111', v.id, x.type, x.document_number, x.issuer, x.start_date, x.expiry_date, x.cost, x.status, x.file_url, x.reminder_enabled, x.responsible
 from (values
   ('AB-1234-AB','insurance','POL-2024-001','NSIA Assurance','2024-01-15'::date,'2025-01-14'::date,450000,'valid',null::text,true,'Fatou'),
@@ -334,25 +333,25 @@ left join public.gps_devices g on g.vehicle_id = v.id and g.organization_id = '1
 
 -- 16. NOTIFICATIONS
 insert into public.notifications (organization_id, user_id, type, title, message, severity, link, is_read)
-select '11111111-1111-1111-1111-111111111111', x.u, x.type, x.title, x.msg, x.sev, x.link, x.read
+select '11111111-1111-1111-1111-111111111111', coalesce((select id from public.user_profiles where email = 'director@afc.ci'), (select id from public.user_profiles limit 1)), x.type, x.title, x.msg, x.sev, x.link, x.read
 from (values
-  ('cccccccc-cccc-cccc-cccc-cccccccccccc'::uuid,'insurance_renewal','Assurance expirée','Véhicule AB-5678-CD: assurance expirée depuis le 10/08/2024','critical','/vehicles',false),
-  ('cccccccc-cccc-cccc-cccc-cccccccccccc'::uuid,'visite_technique','Visite technique expirée','Véhicule AB-5678-CD: visite technique expirée','critical','/vehicles',false),
-  ('cccccccc-cccc-cccc-cccc-cccccccccccc'::uuid,'insurance_renewal','Assurance à renouveler','Véhicule AB-3456-GH: assurance expire le 15/12/2024','warning','/vehicles',false),
-  ('cccccccc-cccc-cccc-cccc-cccccccccccc'::uuid,'visite_technique','Visite technique bientôt','Véhicule AB-3456-GH: visite technique expire le 05/11/2024','warning','/vehicles',true),
-  ('dddddddd-dddd-dddd-dddd-dddddddddddd'::uuid,'late_payment','Facture en retard','Client Eventis Organisation: facture FAC-2024-006 en retard de paiement','warning','/finance/invoices',false),
-  ('cccccccc-cccc-cccc-cccc-cccccccccccc'::uuid,'permis_renewal','Permis à renouveler','Chauffeur Moussa Touré: permis expire le 15/10/2024','critical','/drivers',false),
-  ('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'::uuid,'late_return','Retour en retard','Location LOC-2024-010: retard de restitution, frais appliqués','warning','/rentals',false),
-  ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'::uuid,'maintenance_due','Entretien à programmer','Véhicule AB-5678-CD: 4 pneus à remplacer','info','/maintenance',true),
-  ('cccccccc-cccc-cccc-cccc-cccccccccccc'::uuid,'breakdown','Véhicule en réparation','Véhicule BKE-002: révision moteur en cours au garage','info','/maintenance',true)
-) as x(u, type, title, msg, sev, link, read);
+  ('insurance_renewal','Assurance expirée','Véhicule AB-5678-CD: assurance expirée depuis le 10/08/2024','critical','/vehicles',false),
+  ('visite_technique','Visite technique expirée','Véhicule AB-5678-CD: visite technique expirée','critical','/vehicles',false),
+  ('insurance_renewal','Assurance à renouveler','Véhicule AB-3456-GH: assurance expire le 15/12/2024','warning','/vehicles',false),
+  ('visite_technique','Visite technique bientôt','Véhicule AB-3456-GH: visite technique expire le 05/11/2024','warning','/vehicles',true),
+  ('late_payment','Facture en retard','Client Eventis Organisation: facture FAC-2024-006 en retard de paiement','warning','/finance/invoices',false),
+  ('permis_renewal','Permis à renouveler','Chauffeur Moussa Touré: permis expire le 15/10/2024','critical','/drivers',false),
+  ('late_return','Retour en retard','Location LOC-2024-010: retard de restitution, frais appliqués','warning','/rentals',false),
+  ('maintenance_due','Entretien à programmer','Véhicule AB-5678-CD: 4 pneus à remplacer','info','/maintenance',true),
+  ('breakdown','Véhicule en réparation','Véhicule BKE-002: révision moteur en cours au garage','info','/maintenance',true)
+) as x(type, title, msg, sev, link, read);
 
 -- 17. AUDIT LOGS
 insert into public.audit_logs (organization_id, user_id, user_email, action, module, entity_type, ip_address, created_at)
-select '11111111-1111-1111-1111-111111111111', x.u, x.email, x.action, x.module, x.entity, x.ip, x.dt
+select '11111111-1111-1111-1111-111111111111', coalesce((select id from public.user_profiles where email = 'director@afc.ci'), (select id from public.user_profiles limit 1)), x.email, x.action, x.module, x.entity, x.ip, x.dt
 from (values
-  ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'::uuid,'director@afc.ci','login','auth','session','196.20.10.5','2024-10-28 08:00'::timestamptz),
-  ('cccccccc-cccc-cccc-cccc-cccccccccccc'::uuid,'parc@afc.ci','create','vehicles','vehicle','196.20.10.6','2024-10-28 09:15'::timestamptz),
-  ('dddddddd-dddd-dddd-dddd-dddddddddddd'::uuid,'finance@afc.ci','financial_change','finance','payment','196.20.10.7','2024-10-28 10:30'::timestamptz),
-  ('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'::uuid,'agent@afc.ci','create','rentals','rental','196.20.10.8','2024-10-28 11:00'::timestamptz)
-) as x(u, email, action, module, entity, ip, dt);
+  ('director@afc.ci','login','auth','session','196.20.10.5','2024-10-28 08:00'::timestamptz),
+  ('parc@afc.ci','create','vehicles','vehicle','196.20.10.6','2024-10-28 09:15'::timestamptz),
+  ('finance@afc.ci','financial_change','finance','payment','196.20.10.7','2024-10-28 10:30'::timestamptz),
+  ('agent@afc.ci','create','rentals','rental','196.20.10.8','2024-10-28 11:00'::timestamptz)
+) as x(email, action, module, entity, ip, dt);
