@@ -96,6 +96,7 @@ export function Header({ onMenuClick }: HeaderProps) {
           if (items.length === 0) return null;
           
           if (section.title === 'Pilotage') {
+            const PilotIcon = items[0].icon;
             return (
               <NavLink
                 key={items[0].to}
@@ -107,7 +108,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                     : 'text-ink-600 dark:text-ink-400 hover:text-ink-900 dark:hover:text-ink-100 hover:bg-ink-100/50 dark:hover:bg-ink-800/50'
                 )}
               >
-                <items[0].icon className="w-4 h-4" />
+                <PilotIcon className="w-4 h-4" />
                 <span>{items[0].label}</span>
               </NavLink>
             );
@@ -122,21 +123,24 @@ export function Header({ onMenuClick }: HeaderProps) {
               
               {/* Dropdown Menu */}
               <div className="absolute left-0 mt-1 w-56 bg-white dark:bg-ink-900 rounded-xl shadow-card-hover border border-ink-200/60 dark:border-ink-800/60 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-150 z-50 py-1.5">
-                {items.map((item) => (
-                  <NavLink
-                    key={item.to}
-                    to={item.to}
-                    className={({ isActive }) => cn(
-                      'px-4 py-2 text-sm transition-colors flex items-center gap-2 w-full',
-                      isActive 
-                        ? 'text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10 font-medium' 
-                        : 'text-ink-700 dark:text-ink-300 hover:text-ink-900 dark:hover:text-ink-100 hover:bg-ink-50 dark:hover:bg-ink-800/40'
-                    )}
-                  >
-                    <item.icon className="w-4 h-4 text-ink-400 flex-shrink-0" />
-                    <span className="truncate">{item.label}</span>
-                  </NavLink>
-                ))}
+                {items.map((item) => {
+                  const ItemIcon = item.icon;
+                  return (
+                    <NavLink
+                      key={item.to}
+                      to={item.to}
+                      className={({ isActive }) => cn(
+                        'px-4 py-2 text-sm transition-colors flex items-center gap-2 w-full',
+                        isActive 
+                          ? 'text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10 font-medium' 
+                          : 'text-ink-700 dark:text-ink-300 hover:text-ink-900 dark:hover:text-ink-100 hover:bg-ink-50 dark:hover:bg-ink-800/40'
+                      )}
+                    >
+                      <ItemIcon className="w-4 h-4 text-ink-400 flex-shrink-0" />
+                      <span className="truncate">{item.label}</span>
+                    </NavLink>
+                  );
+                })}
               </div>
             </div>
           );
