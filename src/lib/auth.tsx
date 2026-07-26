@@ -128,6 +128,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [session]);
 
+  useEffect(() => {
+    if (organization) {
+      localStorage.setItem('fc360-login-logo', organization.logo_url || '');
+      localStorage.setItem('fc360-login-name', organization.name || 'FleetControl 360');
+      localStorage.setItem('fc360-login-color', organization.primary_color || '#1e40af');
+    }
+  }, [organization]);
+
   const permissions = useMemo(() => {
     if (profile?.is_platform_admin) return ['*'];
     const set = new Set<string>();

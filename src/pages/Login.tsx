@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Truck, Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, BarChart3, MapPin } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { useToast } from '../lib/toast';
+import { supabase } from '../lib/supabase';
 
 const DEMO_ACCOUNTS = [
   { email: 'director@afc.ci', label: 'Directeur' },
@@ -20,6 +21,40 @@ export function Login() {
   const [password, setPassword] = useState('');
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const [orgBranding, setOrgBranding] = useState({
+    name: localStorage.getItem('fc360-login-name') || 'FleetControl 360',
+    logoUrl: localStorage.getItem('fc360-login-logo') || '',
+    primaryColor: localStorage.getItem('fc360-login-color') || '#1e40af'
+  });
+
+  // Dynamic branding lookup when email matches standard format
+  useEffect(() => {
+    if (!email || !email.includes('@') || !email.includes('.')) return;
+    
+    let active = true;
+    const lookup = async () => {
+      try {
+        const { data, error } = await supabase.rpc('get_organization_by_email', { email_input: email.trim() });
+        if (active && data && data.length > 0) {
+          const org = data[0];
+          setOrgBranding({
+            name: org.name || 'FleetControl 360',
+            logoUrl: org.logo_url || '',
+            primaryColor: org.primary_color || '#1e40af'
+          });
+        }
+      } catch (err) {
+        console.error("Error looking up organization branding:", err);
+      }
+    };
+    
+    const timer = setTimeout(lookup, 300);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [email]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,18 +76,25 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex bg-beige-50 dark:bg-ink-950">
       {/* Left brand panel */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-700 via-blue-800 to-ink-900 relative overflow-hidden">
+      <div 
+        className="hidden lg:flex lg:w-1/2 relative overflow-hidden transition-all duration-500 ease-in-out"
+        style={{ backgroundImage: `linear-gradient(to bottom right, ${orgBranding.primaryColor}, #020617)` }}
+      >
         <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 20% 30%, white 1px, transparent 1px), radial-gradient(circle at 80% 60%, white 1px, transparent 1px)', backgroundSize: '48px 48px' }} />
-        <div className="relative flex flex-col justify-between p-12 text-white">
+        <div className="relative flex flex-col justify-between p-12 text-white w-full">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center">
-              <Truck className="w-6 h-6" />
-            </div>
+            {orgBranding.logoUrl ? (
+              <img src={orgBranding.logoUrl} alt="Logo" className="w-11 h-11 object-contain rounded-xl bg-white/10 p-1" />
+            ) : (
+              <div className="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center">
+                <Truck className="w-6 h-6" />
+              </div>
+            )}
             <div>
-              <p className="font-display font-bold text-xl">FleetControl</p>
-              <p className="text-blue-300 text-xs font-semibold tracking-widest">360</p>
+              <p className="font-display font-bold text-xl">{orgBranding.name}</p>
+              <p className="text-blue-300 text-xs font-semibold tracking-widest uppercase">Espace Partenaire</p>
             </div>
           </div>
 
@@ -79,20 +121,24 @@ export function Login() {
             </div>
           </div>
 
-          <p className="text-blue-300 text-sm">© 2024 FleetControl 360 — Tous droits réservés</p>
+          <p className="text-blue-300 text-sm">© 2026 {orgBranding.name} — Tous droits réservés</p>
         </div>
       </div>
 
       {/* Right form panel */}
       <div className="flex-1 flex flex-col justify-center px-6 sm:px-12 lg:px-16 bg-beige-50 dark:bg-ink-950">
-        <div className="w-full max-w-sm mx-auto">
+        <div className="w-full max-w-sm mx-auto animate-fade-in">
           <div className="lg:hidden flex items-center gap-2.5 mb-8">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center">
-              <Truck className="w-5 h-5 text-white" />
-            </div>
+            {orgBranding.logoUrl ? (
+              <img src={orgBranding.logoUrl} alt="Logo" className="w-10 h-10 object-contain rounded-xl bg-ink-100 dark:bg-ink-900 p-1" />
+            ) : (
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center">
+                <Truck className="w-5 h-5 text-white" />
+              </div>
+            )}
             <div>
-              <p className="font-display font-bold text-ink-900 dark:text-white">FleetControl</p>
-              <p className="text-blue-600 text-xs font-semibold tracking-widest">360</p>
+              <p className="font-display font-bold text-ink-900 dark:text-white">{orgBranding.name}</p>
+              <p className="text-blue-600 dark:text-blue-400 text-xs font-semibold tracking-widest uppercase">Espace Partenaire</p>
             </div>
           </div>
 
@@ -133,7 +179,12 @@ export function Login() {
               </div>
             </div>
 
-            <button type="submit" disabled={loading} className="btn-primary w-full py-2.5">
+            <button 
+              type="submit" 
+              disabled={loading} 
+              className="w-full py-2.5 rounded-lg text-white font-semibold transition-all flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98]"
+              style={{ backgroundColor: orgBranding.primaryColor }}
+            >
               {loading ? 'Connexion…' : 'Se connecter'}
               {!loading && <ArrowRight className="w-4 h-4" />}
             </button>
