@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Menu, Bell, Sun, Moon, LogOut, Search, ChevronDown } from 'lucide-react';
+import { useNavigate, NavLink } from 'react-router-dom';
+import { Menu, Bell, Sun, Moon, LogOut, Search, ChevronDown, Truck } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { useTheme } from '../lib/theme';
 import { supabase } from '../lib/supabase';
@@ -8,13 +8,16 @@ import { initials } from '../lib/format';
 import { NOTIFICATION_SEVERITY_COLORS } from '../lib/labels';
 import { cn } from '../lib/cn';
 import type { Notification } from '../lib/types';
+import { usePermissions } from '../lib/permissions';
+import { NAV_SECTIONS } from './nav';
 
 interface HeaderProps {
   onMenuClick: () => void;
 }
 
 export function Header({ onMenuClick }: HeaderProps) {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, signOut, organization } = useAuth();
+  const { can, isPlatformAdmin } = usePermissions();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [notifOpen, setNotifOpen] = useState(false);
@@ -60,13 +63,93 @@ export function Header({ onMenuClick }: HeaderProps) {
         <Menu className="w-5 h-5" />
       </button>
 
-      <form onSubmit={onGlobalSearch} className="hidden sm:flex relative flex-1 max-w-md">
+      {/* Section Logo */}
+      <div className="flex items-center gap-2.5 mr-4 flex-shrink-0">
+        {organization?.logo_url ? (
+          <div className="flex items-center gap-2">
+            <img 
+              src={organization.logo_url} 
+              alt={organization.name} 
+              className="h-9 w-auto max-w-[120px] object-contain rounded"
+            />
+            <span className="hidden xl:inline font-semibold text-sm text-ink-800 dark:text-white border-l border-ink-200 dark:border-ink-800 pl-2">
+              {organization.name}
+            </span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center shadow-sm">
+              <Truck className="w-5 h-5 text-white" />
+            </div>
+            <div className="min-w-0 hidden sm:block">
+              <p className="font-display font-bold text-sm text-ink-900 dark:text-white leading-tight">FleetControl</p>
+              <p className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold tracking-wider">360</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Menu horizontal */}
+      <nav className="hidden lg:flex items-center gap-1 px-2 mr-4">
+        {NAV_SECTIONS.map((section) => {
+          const items = section.items.filter((item) => !item.permission || isPlatformAdmin || can(item.permission));
+          if (items.length === 0) return null;
+          
+          if (section.title === 'Pilotage') {
+            return (
+              <NavLink
+                key={items[0].to}
+                to={items[0].to}
+                className={({ isActive }) => cn(
+                  'px-3 py-2 text-sm font-semibold rounded-lg transition-colors flex items-center gap-1.5',
+                  isActive 
+                    ? 'text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10' 
+                    : 'text-ink-600 dark:text-ink-400 hover:text-ink-900 dark:hover:text-ink-100 hover:bg-ink-100/50 dark:hover:bg-ink-800/50'
+                )}
+              >
+                <items[0].icon className="w-4 h-4" />
+                <span>{items[0].label}</span>
+              </NavLink>
+            );
+          }
+
+          return (
+            <div key={section.title} className="relative group">
+              <button className="px-3 py-2 text-sm font-semibold rounded-lg text-ink-600 dark:text-ink-400 hover:text-ink-900 dark:hover:text-ink-100 hover:bg-ink-100/50 dark:hover:bg-ink-800/50 transition-colors flex items-center gap-1">
+                <span>{section.title}</span>
+                <ChevronDown className="w-3.5 h-3.5 text-ink-400 group-hover:rotate-180 transition-transform duration-200" />
+              </button>
+              
+              {/* Dropdown Menu */}
+              <div className="absolute left-0 mt-1 w-56 bg-white dark:bg-ink-900 rounded-xl shadow-card-hover border border-ink-200/60 dark:border-ink-800/60 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-150 z-50 py-1.5">
+                {items.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    className={({ isActive }) => cn(
+                      'px-4 py-2 text-sm transition-colors flex items-center gap-2 w-full',
+                      isActive 
+                        ? 'text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10 font-medium' 
+                        : 'text-ink-700 dark:text-ink-300 hover:text-ink-900 dark:hover:text-ink-100 hover:bg-ink-50 dark:hover:bg-ink-800/40'
+                    )}
+                  >
+                    <item.icon className="w-4 h-4 text-ink-400 flex-shrink-0" />
+                    <span className="truncate">{item.label}</span>
+                  </NavLink>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </nav>
+
+      <form onSubmit={onGlobalSearch} className="hidden xl:flex relative flex-1 max-w-[180px]">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-400" />
         <input
           value={globalQuery}
           onChange={(e) => setGlobalQuery(e.target.value)}
-          placeholder="Rechercher un véhicule, immatriculation…"
-          className="input pl-9 h-9 max-w-xs"
+          placeholder="Rechercher..."
+          className="input pl-9 h-9 w-full"
         />
       </form>
 

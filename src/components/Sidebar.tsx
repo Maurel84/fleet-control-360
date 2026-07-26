@@ -3,15 +3,16 @@ import { X, Truck } from 'lucide-react';
 import { NAV_SECTIONS } from './nav';
 import { cn } from '../lib/cn';
 import { usePermissions } from '../lib/permissions';
+import { useAuth } from '../lib/auth';
 
 interface SidebarProps {
   open: boolean;
   onClose: () => void;
-  orgName?: string;
 }
 
-export function Sidebar({ open, onClose, orgName }: SidebarProps) {
+export function Sidebar({ open, onClose }: SidebarProps) {
   const { can, isPlatformAdmin } = usePermissions();
+  const { organization } = useAuth();
   const location = useLocation();
 
   return (
@@ -19,27 +20,37 @@ export function Sidebar({ open, onClose, orgName }: SidebarProps) {
       {open && <div className="fixed inset-0 z-30 bg-ink-950/40 lg:hidden" onClick={onClose} />}
       <aside
         className={cn(
-          'fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white dark:bg-ink-900 border-r border-ink-200/60 dark:border-ink-800/60 flex flex-col transition-transform duration-200 lg:translate-x-0',
-          open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
+          'fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-ink-900 border-r border-ink-200/60 dark:border-ink-800/60 flex flex-col transition-transform duration-200 transform lg:hidden',
+          open ? 'translate-x-0' : '-translate-x-full',
         )}
       >
         <div className="flex items-center gap-2.5 px-5 h-16 border-b border-ink-200/60 dark:border-ink-800/60 flex-shrink-0">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center shadow-sm">
-            <Truck className="w-5 h-5 text-white" />
-          </div>
-          <div className="min-w-0">
-            <p className="font-display font-bold text-sm text-ink-900 dark:text-white leading-tight">FleetControl</p>
-            <p className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold tracking-wider">360</p>
-          </div>
+          {organization?.logo_url ? (
+            <img 
+              src={organization.logo_url} 
+              alt={organization.name} 
+              className="h-8 w-auto max-w-[120px] object-contain rounded"
+            />
+          ) : (
+            <div className="flex items-center gap-2">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center shadow-sm">
+                <Truck className="w-5 h-5 text-white" />
+              </div>
+              <div className="min-w-0">
+                <p className="font-display font-bold text-sm text-ink-900 dark:text-white leading-tight">FleetControl</p>
+                <p className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold tracking-wider">360</p>
+              </div>
+            </div>
+          )}
           <button onClick={onClose} className="ml-auto lg:hidden text-ink-400 hover:text-ink-600 dark:hover:text-ink-200">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {orgName && (
+        {organization && (
           <div className="px-4 py-3 border-b border-ink-100 dark:border-ink-800/60">
             <p className="text-[10px] uppercase tracking-wider text-ink-400 font-semibold">Entreprise</p>
-            <p className="text-sm font-medium text-ink-800 dark:text-ink-100 truncate mt-0.5">{orgName}</p>
+            <p className="text-sm font-medium text-ink-800 dark:text-ink-100 truncate mt-0.5">{organization.name}</p>
           </div>
         )}
 

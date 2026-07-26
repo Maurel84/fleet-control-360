@@ -38,6 +38,7 @@ export function SettingsPage() {
     const { error } = await supabase.from('organizations').update({
       name: org.name, legal_name: org.legal_name, address: org.address,
       phone: org.phone, email: org.email, currency_code: org.currency_code,
+      logo_url: org.logo_url,
     }).eq('id', org.id);
     setSaving(false);
     if (error) toast(error.message, 'error');
@@ -82,6 +83,16 @@ export function SettingsPage() {
             <FormField label="Email"><input className="input" value={org.email || ''} onChange={(e) => setOrg({ ...org, email: e.target.value })} /></FormField>
             <div className="sm:col-span-2"><FormField label="Adresse"><input className="input" value={org.address || ''} onChange={(e) => setOrg({ ...org, address: e.target.value })} /></FormField></div>
             <FormField label="Devise"><input className="input" value={org.currency_code} onChange={(e) => setOrg({ ...org, currency_code: e.target.value })} /></FormField>
+            <div className="sm:col-span-2">
+              <FormField label="URL du logo de l'entreprise">
+                <input 
+                  className="input" 
+                  placeholder="https://exemple.com/logo.png (laisser vide pour le logo par défaut)" 
+                  value={org.logo_url || ''} 
+                  onChange={(e) => setOrg({ ...org, logo_url: e.target.value })} 
+                />
+              </FormField>
+            </div>
           </div>
           <div className="mt-4"><Button onClick={saveOrg} disabled={saving}>{saving ? 'Enregistrement…' : 'Enregistrer'}</Button></div>
         </Card>

@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from './supabase';
-import type { UserProfile, Role, Agency } from './types';
+import type { UserProfile, Role, Agency, Organization } from './types';
 
 const INACTIVITY_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
 
@@ -12,6 +12,7 @@ interface AuthContextValue {
   roles: Role[];
   permissions: string[];
   agencies: Agency[];
+  organization: Organization | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: string | null }>;
@@ -27,6 +28,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [roles, setRoles] = useState<Role[]>([]);
   const [agencies, setAgencies] = useState<Agency[]>([]);
+  const [organization, setOrganization] = useState<Organization | null>(null);
   const [loading, setLoading] = useState(true);
 
   const loadProfile = async (uid: string) => {
@@ -38,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile(prof as UserProfile | null);
 
     if (prof && prof.organization_id) {
-      const [{ data: roleRows }, { data: agencyRows }] = await Promise.all([
+      const [{ data: roleRows }, { data: agencyRows }, { data: orgRow }] = await Promise.all([
         supabase
           .from('roles')
           .select('*, user_roles!inner(organization_id)')
@@ -50,16 +52,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .eq('organization_id', prof.organization_id)
           .eq('is_active', true)
           .order('name'),
+        supabase
+          .from('organizations')
+          .select('*')
+          .eq('id', prof.organization_id)
+          .maybeSingle(),
       ]);
       setRoles((roleRows as unknown as Role[]) ?? []);
       setAgencies((agencyRows as Agency[]) ?? []);
+      setOrganization(orgRow as Organization | null);
     } else if (prof?.is_platform_admin) {
       const { data: allAgencies } = await supabase.from('agencies').select('*').order('name');
       setAgencies((allAgencies as Agency[]) ?? []);
       setRoles([]);
+      setOrganization(null);
     } else {
       setRoles([]);
       setAgencies([]);
+      setOrganization(null);
     }
   };
 
@@ -87,6 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setProfile(null);
           setRoles([]);
           setAgencies([]);
+          setOrganization(null);
         }
         setLoading(false);
       })();
@@ -131,6 +142,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     roles,
     permissions,
     agencies,
+    organization,
     loading,
     signIn: async (email, password) => {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -154,6 +166,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setProfile(null);
       setRoles([]);
       setAgencies([]);
+      setOrganization(null);
     },
   };
 
