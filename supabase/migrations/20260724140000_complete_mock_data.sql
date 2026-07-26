@@ -345,7 +345,7 @@ from (values
   ('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'::uuid,'late_return','Retour en retard','Location LOC-2024-010: retard de restitution, frais appliqués','warning','/rentals',false),
   ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'::uuid,'maintenance_due','Entretien à programmer','Véhicule AB-5678-CD: 4 pneus à remplacer','info','/maintenance',true),
   ('cccccccc-cccc-cccc-cccc-cccccccccccc'::uuid,'breakdown','Véhicule en réparation','Véhicule BKE-002: révision moteur en cours au garage','info','/maintenance',true)
-) as x(u, type, title, msg, severity_type, link, read);
+) as x(u, type, title, msg, sev, link, read);
 
 -- 17. AUDIT LOGS
 insert into public.audit_logs (organization_id, user_id, user_email, action, module, entity_type, ip_address, created_at)
