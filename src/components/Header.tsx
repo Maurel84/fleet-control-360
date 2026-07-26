@@ -122,25 +122,27 @@ export function Header({ onMenuClick }: HeaderProps) {
               </button>
               
               {/* Dropdown Menu */}
-              <div className="absolute left-0 mt-1 w-56 bg-white dark:bg-ink-900 rounded-xl shadow-card-hover border border-ink-200/60 dark:border-ink-800/60 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-150 z-50 py-1.5">
-                {items.map((item) => {
-                  const ItemIcon = item.icon;
-                  return (
-                    <NavLink
-                      key={item.to}
-                      to={item.to}
-                      className={({ isActive }) => cn(
-                        'px-4 py-2 text-sm transition-colors flex items-center gap-2 w-full',
-                        isActive 
-                          ? 'text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10 font-medium' 
-                          : 'text-ink-700 dark:text-ink-300 hover:text-ink-900 dark:hover:text-ink-100 hover:bg-ink-50 dark:hover:bg-ink-800/40'
-                      )}
-                    >
-                      <ItemIcon className="w-4 h-4 text-ink-400 flex-shrink-0" />
-                      <span className="truncate">{item.label}</span>
-                    </NavLink>
-                  );
-                })}
+              <div className="absolute left-0 top-full pt-1.5 w-56 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-150 z-50">
+                <div className="bg-white dark:bg-ink-900 rounded-xl shadow-card-hover border border-ink-200/60 dark:border-ink-800/60 py-1.5 overflow-hidden">
+                  {items.map((item) => {
+                    const ItemIcon = item.icon;
+                    return (
+                      <NavLink
+                        key={item.to}
+                        to={item.to}
+                        className={({ isActive }) => cn(
+                          'px-4 py-2 text-sm transition-colors flex items-center gap-2 w-full',
+                          isActive 
+                            ? 'text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10 font-medium' 
+                            : 'text-ink-700 dark:text-ink-300 hover:text-ink-900 dark:hover:text-ink-100 hover:bg-ink-50 dark:hover:bg-ink-800/40'
+                        )}
+                      >
+                        <ItemIcon className="w-4 h-4 text-ink-400 flex-shrink-0" />
+                        <span className="truncate">{item.label}</span>
+                      </NavLink>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           );
