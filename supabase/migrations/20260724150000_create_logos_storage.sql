@@ -3,9 +3,6 @@ insert into storage.buckets (id, name, public)
 values ('logos', 'logos', true)
 on conflict (id) do nothing;
 
--- Ensure RLS is active on objects
-alter table storage.objects enable row level security;
-
 -- Policies for the logos bucket
 create policy "Public Access to Logos"
   on storage.objects for select
