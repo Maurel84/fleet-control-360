@@ -30,6 +30,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { to: '/drivers', label: 'Chauffeurs', icon: UserCircle, permission: 'drivers.read' },
       { to: '/clients', label: 'Clients', icon: Users, permission: 'clients.read' },
       { to: '/rentals', label: 'Locations', icon: CalendarCheck, permission: 'rentals.read' },
+      { to: '/planning', label: 'Planning', icon: CalendarCheck, permission: 'rentals.read' },
       { to: '/sales', label: 'Vente & Crédit', icon: ShoppingBag, permission: 'finance.read' },
       { to: '/missions', label: 'Missions & escortes', icon: Truck, permission: 'missions.read' },
       { to: '/movements', label: 'Sorties & retours', icon: ClipboardList, permission: 'movements.read' },
@@ -55,6 +56,7 @@ export const NAV_SECTIONS: NavSection[] = [
     title: 'Suivi',
     items: [
       { to: '/gps', label: 'GPS', icon: MapPin, permission: 'gps.read' },
+      { to: '/drivers/eco', label: 'Éco-Conduite', icon: ShieldCheck, permission: 'drivers.read' },
       { to: '/notifications', label: 'Notifications', icon: Bell, permission: 'notifications.read' },
     ],
   },

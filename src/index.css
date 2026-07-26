@@ -100,3 +100,18 @@
     @apply bg-ink-200 dark:bg-ink-700 rounded animate-pulse;
   }
 }
+
+@layer utilities {
+  .dark .text-ink-500 {
+    color: rgb(148 163 184) !important;
+  }
+  .dark .text-ink-600 {
+    color: rgb(203 213 225) !important;
+  }
+  .dark .text-ink-700 {
+    color: rgb(226 232 240) !important;
+  }
+  .dark .text-ink-800 {
+    color: rgb(241 245 249) !important;
+  }
+}

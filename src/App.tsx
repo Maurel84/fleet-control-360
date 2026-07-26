@@ -16,6 +16,7 @@ const VehicleDetailPage = lazy(() => import('./pages/VehicleDetail').then((m) =>
 const DriversPage = lazy(() => import('./pages/Drivers').then((m) => ({ default: m.DriversPage })));
 const ClientsPage = lazy(() => import('./pages/Clients').then((m) => ({ default: m.ClientsPage })));
 const RentalsPage = lazy(() => import('./pages/Rentals').then((m) => ({ default: m.RentalsPage })));
+const PlanningPage = lazy(() => import('./pages/Planning').then((m) => ({ default: m.Planning })));
 const SalesPage = lazy(() => import('./pages/Sales').then((m) => ({ default: m.SalesPage })));
 const MissionsPage = lazy(() => import('./pages/Missions').then((m) => ({ default: m.MissionsPage })));
 const MovementsPage = lazy(() => import('./pages/Movements').then((m) => ({ default: m.MovementsPage })));
@@ -25,6 +26,7 @@ const InvoicesPage = lazy(() => import('./pages/Invoices').then((m) => ({ defaul
 const PaymentsPage = lazy(() => import('./pages/Payments').then((m) => ({ default: m.PaymentsPage })));
 const ExpensesPage = lazy(() => import('./pages/Expenses').then((m) => ({ default: m.ExpensesPage })));
 const GpsPage = lazy(() => import('./pages/Gps').then((m) => ({ default: m.GpsPage })));
+const EcoDrivingPage = lazy(() => import('./pages/EcoDriving').then((m) => ({ default: m.EcoDriving })));
 const IncidentsPage = lazy(() => import('./pages/Incidents').then((m) => ({ default: m.IncidentsPage })));
 const NotificationsPage = lazy(() => import('./pages/Notifications').then((m) => ({ default: m.NotificationsPage })));
 const SettingsPage = lazy(() => import('./pages/Settings').then((m) => ({ default: m.SettingsPage })));
@@ -71,6 +73,7 @@ export default function App() {
                   <Route path="/drivers" element={<Suspense fallback={<PageLoader />}><DriversPage /></Suspense>} />
                   <Route path="/clients" element={<Suspense fallback={<PageLoader />}><ClientsPage /></Suspense>} />
                   <Route path="/rentals" element={<Suspense fallback={<PageLoader />}><RentalsPage /></Suspense>} />
+                  <Route path="/planning" element={<Suspense fallback={<PageLoader />}><PlanningPage /></Suspense>} />
                   <Route path="/sales" element={<Suspense fallback={<PageLoader />}><SalesPage /></Suspense>} />
                   <Route path="/missions" element={<Suspense fallback={<PageLoader />}><MissionsPage /></Suspense>} />
                   <Route path="/movements" element={<Suspense fallback={<PageLoader />}><MovementsPage /></Suspense>} />
@@ -80,6 +83,7 @@ export default function App() {
                   <Route path="/finance/payments" element={<Suspense fallback={<PageLoader />}><PaymentsPage /></Suspense>} />
                   <Route path="/finance/expenses" element={<Suspense fallback={<PageLoader />}><ExpensesPage /></Suspense>} />
                   <Route path="/gps" element={<Suspense fallback={<PageLoader />}><GpsPage /></Suspense>} />
+                  <Route path="/drivers/eco" element={<Suspense fallback={<PageLoader />}><EcoDrivingPage /></Suspense>} />
                   <Route path="/incidents" element={<Suspense fallback={<PageLoader />}><IncidentsPage /></Suspense>} />
                   <Route path="/notifications" element={<Suspense fallback={<PageLoader />}><NotificationsPage /></Suspense>} />
                   <Route path="/agencies" element={<Suspense fallback={<PageLoader />}><AgenciesPage /></Suspense>} />

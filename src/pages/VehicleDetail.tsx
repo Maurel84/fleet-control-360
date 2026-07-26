@@ -2,11 +2,12 @@ import { useEffect, useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   Car, ArrowLeft, FileText, Fuel, Wrench, MapPin, Calendar, Gauge,
-  Palette, Zap, Users, Building2, Wallet,
+  Palette, Zap, Users, Building2, Wallet, Disc,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/auth';
 import { useSingle } from '../lib/query';
+import { useToast } from '../lib/toast';
 import { Card, CardHeader, StatusBadge } from '../components/Card';
 
 import {
@@ -18,7 +19,7 @@ import type { Vehicle, VehicleDocument, FuelEntry, MaintenanceRequest, GpsPositi
 import { cn } from '../lib/cn';
 import { GpsMap } from '../components/GpsMap';
 
-type Tab = 'overview' | 'documents' | 'fuel' | 'maintenance' | 'gps';
+type Tab = 'overview' | 'documents' | 'fuel' | 'maintenance' | 'gps' | 'tires';
 
 export function VehicleDetailPage() {
   const { id } = useParams();
@@ -75,6 +76,7 @@ export function VehicleDetailPage() {
     { key: 'fuel', label: 'Carburant', icon: Fuel, count: fuel.length },
     { key: 'maintenance', label: 'Maintenance', icon: Wrench, count: maint.length },
     { key: 'gps', label: 'GPS', icon: MapPin, count: gps.length },
+    { key: 'tires', label: 'Pneumatiques', icon: Disc },
   ];
 
   return (
@@ -123,6 +125,7 @@ export function VehicleDetailPage() {
       {tab === 'fuel' && <FuelTab fuel={fuel} />}
       {tab === 'maintenance' && <MaintenanceTab maint={maint} />}
       {tab === 'gps' && <GpsTab gps={gps} vehicle={vehicle} />}
+      {tab === 'tires' && <TiresTab vehicleId={vehicle.id} />}
     </div>
   );
 }
@@ -296,3 +299,209 @@ function EmptyState({ text }: { text: string }) {
     </div>
   );
 }
+
+interface TireData {
+  brand: string;
+  pressure: number;
+  depth: number;
+}
+
+const DEFAULT_TIRES: Record<string, TireData> = {
+  front_left: { brand: 'Michelin Pilot Sport', pressure: 2.2, depth: 6.5 },
+  front_right: { brand: 'Michelin Pilot Sport', pressure: 2.2, depth: 6.2 },
+  rear_left: { brand: 'Michelin Pilot Sport', pressure: 2.1, depth: 3.8 },
+  rear_right: { brand: 'Michelin Pilot Sport', pressure: 2.1, depth: 1.5 },
+  spare: { brand: 'Michelin Standard', pressure: 2.3, depth: 8.0 }
+};
+
+const TIRE_LABELS: Record<string, string> = {
+  front_left: 'Avant Gauche (AV-G)',
+  front_right: 'Avant Droit (AV-D)',
+  rear_left: 'Arrière Gauche (AR-G)',
+  rear_right: 'Arrière Droit (AR-D)',
+  spare: 'Roue de Secours (SEC)'
+};
+
+function TiresTab({ vehicleId }: { vehicleId: string }) {
+  const { toast } = useToast();
+  const storageKey = `vehicle-${vehicleId}-tires`;
+  
+  const [tires, setTires] = useState<Record<string, TireData>>(() => {
+    const stored = localStorage.getItem(storageKey);
+    return stored ? JSON.parse(stored) : DEFAULT_TIRES;
+  });
+
+  const [selectedWheel, setSelectedWheel] = useState<string>('front_left');
+  
+  // Temporary form state
+  const currentTire = tires[selectedWheel];
+  const [brand, setBrand] = useState(currentTire.brand);
+  const [pressure, setPressure] = useState(currentTire.pressure.toString());
+  const [depth, setDepth] = useState(currentTire.depth.toString());
+
+  // Sync form state when active wheel changes
+  useEffect(() => {
+    const tire = tires[selectedWheel];
+    setBrand(tire.brand);
+    setPressure(tire.pressure.toString());
+    setDepth(tire.depth.toString());
+  }, [selectedWheel, tires]);
+
+  const handleSave = (e: React.FormEvent) => {
+    e.preventDefault();
+    const updated = {
+      ...tires,
+      [selectedWheel]: {
+        brand,
+        pressure: parseFloat(pressure) || 0,
+        depth: parseFloat(depth) || 0
+      }
+    };
+    setTires(updated);
+    localStorage.setItem(storageKey, JSON.stringify(updated));
+    toast('Données du pneu enregistrées avec succès.', 'success');
+  };
+
+  // Helper to determine status color for wheels
+  const getTireStatus = (tire: TireData) => {
+    if (tire.depth < 1.6 || tire.pressure < 1.6 || tire.pressure > 2.7) return 'critical';
+    if (tire.depth < 3.0 || tire.pressure < 1.9 || tire.pressure > 2.5) return 'warning';
+    return 'good';
+  };
+
+  const getTireColorClass = (tire: TireData) => {
+    const status = getTireStatus(tire);
+    if (status === 'critical') return 'fill-red-500 stroke-red-600 dark:fill-red-650';
+    if (status === 'warning') return 'fill-amber-500 stroke-amber-600 dark:fill-amber-650';
+    return 'fill-emerald-500 stroke-emerald-600 dark:fill-emerald-650';
+  };
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Visual Wheel Map Column 1 & 2 */}
+      <div className="lg:col-span-2 card p-5 flex flex-col items-center">
+        <CardHeader title="Schéma d'état des pneumatiques" subtitle="Sélectionnez un pneu sur le véhicule pour ajuster la pression et mesurer l'usure" />
+        
+        <div className="relative w-full max-w-[320px] h-[360px] flex items-center justify-center bg-ink-50/30 dark:bg-ink-950/10 rounded-2xl border border-ink-100 dark:border-ink-800/40 p-4">
+          <svg viewBox="0 0 200 300" className="w-full h-full max-h-[300px]">
+            {/* Chassis outline */}
+            <rect x="75" y="40" width="50" height="200" rx="10" className="fill-ink-200/50 dark:fill-ink-800/50 stroke-ink-300 dark:stroke-ink-700 stroke-2" />
+            <line x1="50" y1="80" x2="150" y2="80" className="stroke-ink-400 dark:stroke-ink-600 stroke-4" />
+            <line x1="50" y1="200" x2="150" y2="200" className="stroke-ink-400 dark:stroke-ink-600 stroke-4" />
+            
+            {/* Front Left Wheel */}
+            <g className="cursor-pointer" onClick={() => setSelectedWheel('front_left')}>
+              <rect x="35" y="55" width="30" height="50" rx="6" className={cn(
+                "transition-all duration-200 hover:opacity-90",
+                getTireColorClass(tires.front_left),
+                selectedWheel === 'front_left' ? "stroke-ink-950 dark:stroke-white stroke-3" : "stroke-2"
+              )} />
+              <text x="50" y="85" textAnchor="middle" className="fill-white font-bold text-[9px]">AV-G</text>
+            </g>
+
+            {/* Front Right Wheel */}
+            <g className="cursor-pointer" onClick={() => setSelectedWheel('front_right')}>
+              <rect x="135" y="55" width="30" height="50" rx="6" className={cn(
+                "transition-all duration-200 hover:opacity-90",
+                getTireColorClass(tires.front_right),
+                selectedWheel === 'front_right' ? "stroke-ink-950 dark:stroke-white stroke-3" : "stroke-2"
+              )} />
+              <text x="150" y="85" textAnchor="middle" className="fill-white font-bold text-[9px]">AV-D</text>
+            </g>
+
+            {/* Rear Left Wheel */}
+            <g className="cursor-pointer" onClick={() => setSelectedWheel('rear_left')}>
+              <rect x="35" y="175" width="30" height="50" rx="6" className={cn(
+                "transition-all duration-200 hover:opacity-90",
+                getTireColorClass(tires.rear_left),
+                selectedWheel === 'rear_left' ? "stroke-ink-950 dark:stroke-white stroke-3" : "stroke-2"
+              )} />
+              <text x="50" y="205" textAnchor="middle" className="fill-white font-bold text-[9px]">AR-G</text>
+            </g>
+
+            {/* Rear Right Wheel */}
+            <g className="cursor-pointer" onClick={() => setSelectedWheel('rear_right')}>
+              <rect x="135" y="175" width="30" height="50" rx="6" className={cn(
+                "transition-all duration-200 hover:opacity-90",
+                getTireColorClass(tires.rear_right),
+                selectedWheel === 'rear_right' ? "stroke-ink-950 dark:stroke-white stroke-3" : "stroke-2"
+              )} />
+              <text x="150" y="205" textAnchor="middle" className="fill-white font-bold text-[9px]">AR-D</text>
+            </g>
+
+            {/* Spare Wheel (Secours) at the trunk */}
+            <g className="cursor-pointer" onClick={() => setSelectedWheel('spare')}>
+              <rect x="85" y="235" width="30" height="40" rx="6" className={cn(
+                "transition-all duration-200 hover:opacity-90",
+                getTireColorClass(tires.spare),
+                selectedWheel === 'spare' ? "stroke-ink-950 dark:stroke-white stroke-3" : "stroke-2"
+              )} />
+              <text x="100" y="260" textAnchor="middle" className="fill-white font-bold text-[8px]">SEC</text>
+            </g>
+          </svg>
+        </div>
+
+        <div className="flex gap-4 text-xs font-semibold mt-4">
+          <span className="flex items-center gap-1.5"><span className="w-3.5 h-3.5 rounded bg-emerald-500 inline-block" /> Conforme (&gt; 3mm)</span>
+          <span className="flex items-center gap-1.5"><span className="w-3.5 h-3.5 rounded bg-amber-500 inline-block" /> Usure modérée (2-3mm)</span>
+          <span className="flex items-center gap-1.5"><span className="w-3.5 h-3.5 rounded bg-red-500 inline-block" /> Seuil d'alerte (&lt; 1.6mm)</span>
+        </div>
+      </div>
+
+      {/* Editor Column 3 */}
+      <div className="card p-5">
+        <h3 className="font-display font-bold text-sm text-ink-900 dark:text-white border-b border-ink-200/60 dark:border-ink-800/60 pb-2.5 mb-4">
+          Paramètres du pneu
+        </h3>
+
+        <form onSubmit={handleSave} className="space-y-4">
+          <div>
+            <label className="label">Position sélectionnée</label>
+            <input type="text" className="input bg-ink-50 dark:bg-ink-950" value={TIRE_LABELS[selectedWheel]} disabled />
+          </div>
+
+          <div>
+            <label className="label">Marque / Modèle du pneu</label>
+            <input type="text" className="input" value={brand} onChange={e => setBrand(e.target.value)} required />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="label">Pression (bar)</label>
+              <input type="number" step="0.1" className="input" value={pressure} onChange={e => setPressure(e.target.value)} required />
+            </div>
+            <div>
+              <label className="label">Gomme restante (mm)</label>
+              <input type="number" step="0.1" className="input" value={depth} onChange={e => setDepth(e.target.value)} required />
+            </div>
+          </div>
+
+          <div className="pt-2">
+            <Button type="submit" className="w-full">Enregistrer les mesures</Button>
+          </div>
+        </form>
+
+        {/* Diagnosis Card */}
+        <div className="mt-6 border-t border-ink-100 dark:border-ink-800 pt-4">
+          <h4 className="font-bold text-xs text-ink-900 dark:text-white mb-2">Diagnostic de sécurité</h4>
+          <div className="space-y-2 text-xs">
+            {getTireStatus(tires[selectedWheel]) === 'critical' ? (
+              <div className="p-3 bg-red-50/50 dark:bg-red-900/10 border border-red-200/40 dark:border-red-900/30 text-red-700 dark:text-red-400 rounded-xl font-medium">
+                ⚠️ Alerte Critique : Ce pneu est en dessous de la limite légale d'usure (1.6 mm) ou présente un défaut majeur de pression. Un changement immédiat est requis !
+              </div>
+            ) : getTireStatus(tires[selectedWheel]) === 'warning' ? (
+              <div className="p-3 bg-amber-50/50 dark:bg-amber-900/10 border border-amber-200/40 dark:border-amber-900/30 text-amber-700 dark:text-amber-400 rounded-xl font-medium">
+                ⚠️ Avertissement : Usure modérée détectée ou pression hors plage recommandée. Prévoyez une rotation ou une remise à niveau.
+              </div>
+            ) : (
+              <div className="p-3 bg-emerald-50/50 dark:bg-emerald-900/10 border border-emerald-200/40 dark:border-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-xl font-medium">
+                ✅ Pneu Conforme : Les mesures de gomme et de pression sont optimales pour un roulage en toute sécurité.
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
