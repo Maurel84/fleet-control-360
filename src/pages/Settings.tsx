@@ -18,6 +18,7 @@ export function SettingsPage() {
   const [org, setOrg] = useState<Organization | null>(null);
   const [, setloading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [fullName, setFullName] = useState(profile?.full_name || '');
   const [phone, setPhone] = useState(profile?.phone || '');
 
@@ -31,6 +32,39 @@ export function SettingsPage() {
     });
     return () => { active = false; };
   }, [profile?.organization_id]);
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !org) return;
+
+    try {
+      setUploading(true);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${org.id}/logo_${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('logos')
+        .upload(fileName, file, { 
+          cacheControl: '3600',
+          upsert: true 
+        });
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data } = supabase.storage
+        .from('logos')
+        .getPublicUrl(fileName);
+
+      setOrg({ ...org, logo_url: data.publicUrl });
+      toast('Logo téléversé avec succès. Cliquez sur Enregistrer pour confirmer.', 'success');
+    } catch (err: any) {
+      toast(`Erreur lors du téléversement : ${err.message}`, 'error');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const saveOrg = async () => {
     if (!org) return;
@@ -84,14 +118,48 @@ export function SettingsPage() {
             <div className="sm:col-span-2"><FormField label="Adresse"><input className="input" value={org.address || ''} onChange={(e) => setOrg({ ...org, address: e.target.value })} /></FormField></div>
             <FormField label="Devise"><input className="input" value={org.currency_code} onChange={(e) => setOrg({ ...org, currency_code: e.target.value })} /></FormField>
             <div className="sm:col-span-2">
-              <FormField label="URL du logo de l'entreprise">
-                <input 
-                  className="input" 
-                  placeholder="https://exemple.com/logo.png (laisser vide pour le logo par défaut)" 
-                  value={org.logo_url || ''} 
-                  onChange={(e) => setOrg({ ...org, logo_url: e.target.value })} 
-                />
-              </FormField>
+              <label className="block text-sm font-semibold text-ink-700 dark:text-ink-300 mb-1.5">
+                Logo de l'entreprise
+              </label>
+              <div className="flex items-center gap-4 p-4 rounded-xl border border-dashed border-ink-300 dark:border-ink-700 bg-ink-50/30 dark:bg-ink-900/10">
+                {org.logo_url ? (
+                  <div className="w-16 h-16 rounded-lg bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-800 flex items-center justify-center overflow-hidden flex-shrink-0">
+                    <img src={org.logo_url} alt="Aperçu du logo" className="max-w-full max-h-full object-contain" />
+                  </div>
+                ) : (
+                  <div className="w-16 h-16 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/50 flex items-center justify-center text-blue-600 dark:text-blue-400 flex-shrink-0 font-bold text-xs">
+                    Aucun
+                  </div>
+                )}
+                <div className="flex-1 flex flex-wrap items-center gap-2">
+                  <input
+                    type="file"
+                    id="logo-upload"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleLogoUpload}
+                    disabled={uploading}
+                  />
+                  <label
+                    htmlFor="logo-upload"
+                    className="btn btn-secondary py-1.5 px-3 text-xs cursor-pointer inline-flex items-center gap-1.5"
+                  >
+                    {uploading ? 'Téléversement...' : 'Choisir un fichier'}
+                  </label>
+                  {org.logo_url && (
+                    <button
+                      type="button"
+                      onClick={() => setOrg({ ...org, logo_url: '' })}
+                      className="btn btn-ghost text-red-600 hover:text-red-700 py-1.5 px-3 text-xs"
+                    >
+                      Supprimer
+                    </button>
+                  )}
+                  <p className="text-[11px] text-ink-500 w-full mt-1">
+                    Format recommandé : PNG ou SVG, fond transparent. Taille max 2 Mo.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
           <div className="mt-4"><Button onClick={saveOrg} disabled={saving}>{saving ? 'Enregistrement…' : 'Enregistrer'}</Button></div>
