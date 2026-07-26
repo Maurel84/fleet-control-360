@@ -1,5 +1,5 @@
 /*
-# Complete Seed Data
+# Complete Seed Data (Fixed)
 Consolidated seed data script including agences, categories, clients, suppliers, and the corrected vehicle/driver/rental mock data.
 */
 
@@ -33,8 +33,7 @@ insert into public.agencies (organization_id, name, code, city, address, is_acti
 values
   ('11111111-1111-1111-1111-111111111111', 'Agence Cocody', 'ABJ-COC', 'Abidjan', 'Cocody Boulevard Latrille', true),
   ('11111111-1111-1111-1111-111111111111', 'Agence Yopougon', 'ABJ-YOP', 'Abidjan', 'Yopougon Maroc', true),
-  ('11111111-1111-1111-1111-111111111111', 'Agence Bouaké', 'BKE', 'Bouaké', 'Bouaké Commerce', true)
-on conflict (organization_id, code) do nothing;
+  ('11111111-1111-1111-1111-111111111111', 'Agence Bouaké', 'BKE', 'Bouaké', 'Bouaké Commerce', true);
 
 -- 2. VEHICLE CATEGORIES
 insert into public.vehicle_categories (organization_id, name, code, description)
@@ -47,8 +46,7 @@ values
   ('11111111-1111-1111-1111-111111111111', 'Moto','moto','Deux-roues'),
   ('11111111-1111-1111-1111-111111111111', 'Ambulance','ambulance','Transport sanitaire'),
   ('11111111-1111-1111-1111-111111111111', 'Véhicule blindé','blinde','Véhicule sécurisé'),
-  ('11111111-1111-1111-1111-111111111111', 'Camionnette','camionnette','Utilitaire léger')
-on conflict do nothing;
+  ('11111111-1111-1111-1111-111111111111', 'Camionnette','camionnette','Utilitaire léger');
 
 -- 3. SUPPLIERS
 insert into public.suppliers (organization_id, type, name, contact_person, phone, email, address, services, rating, notes)
@@ -60,8 +58,7 @@ values
   ('11111111-1111-1111-1111-111111111111', 'fuel_station','Station Total Cocody','Gérant','+225 27 22 77 55 66',null,'Cocody','Carburant essence/diesel',4.0,'Carte carburant AFC'),
   ('11111111-1111-1111-1111-111111111111', 'fuel_station','Station Pétro Ivoire Yopougon','Gérant','+225 27 22 77 55 67',null,'Yopougon','Carburant essence/diesel',3.9,null),
   ('11111111-1111-1111-1111-111111111111', 'parts_vendor','Pièces Auto Express','Vendeur','+225 07 55 66 77 88','vente@piecesexpress.ci','Adjamé','Pièces détachées toutes marques',4.1,null),
-  ('11111111-1111-1111-1111-111111111111', 'gps_provider','TrackGPS Africa','Support technique','+225 27 22 66 44 33','support@trackgps.africa','Marcory','Traceurs GPS, géolocalisation',4.4,'Fournisseur GPS principal')
-on conflict do nothing;
+  ('11111111-1111-1111-1111-111111111111', 'gps_provider','TrackGPS Africa','Support technique','+225 27 22 66 44 33','support@trackgps.africa','Marcory','Traceurs GPS, géolocalisation',4.4,'Fournisseur GPS principal');
 
 -- 4. CLIENTS
 insert into public.clients (organization_id, type, name, representative, contact_person, phone, email, address, tax_id, trade_register, credit_limit, payment_delay_days, risk_level, account_status, notes)
@@ -77,8 +74,7 @@ values
   ('11111111-1111-1111-1111-111111111111', 'company','Eventis Organisation','Manager','Christelle Aya','+225 07 77 88 99 03','c.aya@eventis.ci','Cocody',null,'CI-ABJ-2020-321',2000000,15,'high','active','Événementiel, paiements parfois en retard'),
   ('11111111-1111-1111-1111-111111111111', 'individual','Dr. Paul Yapi',null,'Dr. Paul Yapi','+225 07 77 88 99 04','p.yapi@med.ci','Cocody Riviera 2',null,null,1000000,0,'low','active','Médecin, location ponctuelle'),
   ('11111111-1111-1111-1111-111111111111', 'partner','Agence Voyage Discovery','Responsable','Roger Tanoh','+225 27 22 33 44 60','r.tanoh@discovery.ci','Plateau',null,null,5000000,15,'low','active','Partenaire touristique'),
-  ('11111111-1111-1111-1111-111111111111', 'company','BuildMat Côte d''Ivoire','Directeur Logistique','Adama Soro','+225 27 22 33 44 61','a.soro@buildmat.ci','Yopougon',null,'CI-ABJ-2016-654',4000000,30,'medium','suspended','Retard de paiement')
-on conflict do nothing;
+  ('11111111-1111-1111-1111-111111111111', 'company','BuildMat Côte d''Ivoire','Directeur Logistique','Adama Soro','+225 27 22 33 44 61','a.soro@buildmat.ci','Yopougon',null,'CI-ABJ-2016-654',4000000,30,'medium','suspended','Retard de paiement');
 
 -- 5. VEHICLES
 insert into public.vehicles (organization_id, agency_id, category_id, internal_number, registration, vin, brand, model, category, vehicle_type, color, year_manufactured, fuel_type, tank_capacity, estimated_consumption, transmission, seats, current_mileage, ownership_type, owner_name, purchase_price, estimated_value, monthly_depreciation, status, availability, notes)
@@ -109,8 +105,7 @@ join public.agencies a on a.organization_id = '11111111-1111-1111-1111-111111111
     when x.internal_number like 'ABJ-%' then 'ABJ-COC'
     when x.internal_number like 'BKE-%' then 'BKE'
   end
-join public.vehicle_categories c on c.code = x.category and c.organization_id = '11111111-1111-1111-1111-111111111111'
-on conflict do nothing;
+join public.vehicle_categories c on c.code = x.category and c.organization_id = '11111111-1111-1111-1111-111111111111';
 
 -- 6. DRIVERS
 insert into public.drivers (organization_id, agency_id, matricule, first_name, last_name, gender, birth_date, phone, address, emergency_contact, hire_date, contract_type, status, license_number, license_category, license_issue_date, license_expiry_date, experience_years, languages, salary, bonus, rating, certifications, notes)
@@ -129,8 +124,7 @@ from (values
   ('ABJ-COC','CHF-011','Eric','Kouadio','M','1994-02-14'::date,'+225 07 11 22 43','Cocody Abidjan','+225 05 99 88 67','2021-04-01'::date,'CDI','absent','PERM-011','B','2016-08-01'::date,'2025-08-01'::date,9,'Français',200000,25000,4.0,'Absent maladie','Absent maladie'),
   ('ABJ-YOP','CHF-012','Christelle','Adjoua','F','1996-10-08'::date,'+225 07 11 22 44','Yopougon Abidjan','+225 05 99 88 66','2022-08-01'::date,'CDI','available','PERM-012','B,C','2019-12-01'::date,'2027-12-01'::date,7,'Français, Bété',190000,30000,4.7,null::text,null::text)
 ) as x(agency_code, matricule, first_name, last_name, gender, birth_date, phone, address, emergency_contact, hire_date, contract_type, status, license_number, license_category, license_issue_date, license_expiry_date, experience_years, languages, salary, bonus, rating, certifications, notes)
-join public.agencies a on a.code = x.agency_code and a.organization_id = '11111111-1111-1111-1111-111111111111'
-on conflict do nothing;
+join public.agencies a on a.code = x.agency_code and a.organization_id = '11111111-1111-1111-1111-111111111111';
 
 -- 7. VEHICLE DOCUMENTS
 insert into public.vehicle_documents (organization_id, vehicle_id, type, document_number, issuer, start_date, expiry_date, cost, status, file_url, reminder_enabled, responsible)
@@ -147,8 +141,7 @@ from (values
   ('AB-2345-JK','insurance','POL-2024-005','AXA CI','2024-07-15'::date,'2025-07-14'::date,600000,'valid',null::text,true,'Fatou'),
   ('AB-6789-LM','insurance','POL-2024-006','NSIA Assurance','2024-02-01'::date,'2024-11-01'::date,720000,'expiring',null::text,true,'Fatou')
 ) as x(reg, type, document_number, issuer, start_date, expiry_date, cost, status, file_url, reminder_enabled, responsible)
-join public.vehicles v on v.registration = x.reg and v.organization_id = '11111111-1111-1111-1111-111111111111'
-on conflict do nothing;
+join public.vehicles v on v.registration = x.reg and v.organization_id = '11111111-1111-1111-1111-111111111111';
 
 -- 8. RENTALS
 insert into public.rentals (organization_id, reference, client_id, vehicle_id, driver_id, agency_departure_id, start_datetime, planned_return_datetime, actual_return_datetime, destination, days_count, km_included, daily_rate, deposit, total_amount, status, payment_method, notes)
@@ -168,8 +161,7 @@ from (values
 join public.clients c on c.name = x.client_name and c.organization_id = '11111111-1111-1111-1111-111111111111'
 join public.vehicles v on v.registration = x.reg and v.organization_id = '11111111-1111-1111-1111-111111111111'
 left join public.drivers d on (d.first_name||' '||d.last_name) = x.driver_name and d.organization_id = '11111111-1111-1111-1111-111111111111'
-left join public.agencies a on a.name = x.agency_name and a.organization_id = '11111111-1111-1111-1111-111111111111'
-on conflict do nothing;
+left join public.agencies a on a.name = x.agency_name and a.organization_id = '11111111-1111-1111-1111-111111111111';
 
 -- 9. MISSIONS
 insert into public.missions (organization_id, reference, client_id, vehicle_id, primary_driver_id, agency_id, mission_type, departure_point, destination, intermediate_stops, start_datetime, planned_end_datetime, passengers, confidentiality, security_level, instructions, onsite_contact, billed_amount, estimated_costs, advance_amount, status)
@@ -185,8 +177,7 @@ from (values
 join public.clients c on c.name = x.client_name and c.organization_id = '11111111-1111-1111-1111-111111111111'
 join public.vehicles v on v.registration = x.reg and v.organization_id = '11111111-1111-1111-1111-111111111111'
 left join public.drivers d on (d.first_name||' '||d.last_name) = x.driver_name and d.organization_id = '11111111-1111-1111-1111-111111111111'
-left join public.agencies a on a.name = x.agency_name and a.organization_id = '11111111-1111-1111-1111-111111111111'
-on conflict do nothing;
+left join public.agencies a on a.name = x.agency_name and a.organization_id = '11111111-1111-1111-1111-111111111111';
 
 -- 10. FUEL ENTRIES
 insert into public.fuel_entries (organization_id, vehicle_id, driver_id, date, station_name, fuel_type, quantity, price_per_unit, amount, mileage, level_before, level_after, payment_method, fuel_card)
@@ -206,8 +197,7 @@ from (values
   ('AB-7890-AC',null::text,'2024-10-15 16:00'::timestamptz,'Station Total Cocody','diesel',65.0,745,48425,36000,'1/4','full','card','AFC-FUEL-001')
 ) as x(reg, driver_name, dt, station, ft, qty, ppu, amt, km, lb, la, pm, fc)
 join public.vehicles v on v.registration = x.reg and v.organization_id = '11111111-1111-1111-1111-111111111111'
-left join public.drivers d on (d.first_name||' '||d.last_name) = x.driver_name and d.organization_id = '11111111-1111-1111-1111-111111111111'
-on conflict do nothing;
+left join public.drivers d on (d.first_name||' '||d.last_name) = x.driver_name and d.organization_id = '11111111-1111-1111-1111-111111111111';
 
 -- 11. MAINTENANCE REQUESTS + WORK ORDERS
 insert into public.maintenance_requests (organization_id, vehicle_id, reference, requested_by, issue_type, description, priority, estimated_cost, status)
@@ -219,8 +209,7 @@ from (values
   ('MR-2024-004','AB-7890-AC','Yao Konan','carrosserie','Réparation carrosserie après accident','high',320000,'in_progress'),
   ('MR-2024-005','AB-5678-CD','Yao Konan','pneus','Remplacement 4 pneus usés','normal',240000,'pending_validation')
 ) as x(ref, reg, req, issue, "desc", prio, est, status)
-join public.vehicles v on v.registration = x.reg and v.organization_id = '11111111-1111-1111-1111-111111111111'
-on conflict do nothing;
+join public.vehicles v on v.registration = x.reg and v.organization_id = '11111111-1111-1111-1111-111111111111';
 
 insert into public.work_orders (organization_id, reference, vehicle_id, garage_supplier_id, description, estimated_cost, actual_cost, labor_cost, parts_cost, start_date, end_date, return_to_service_date, status)
 select '11111111-1111-1111-1111-111111111111', x.ref, v.id, s.id, x.desc, x.est, x.act, x.lab, x.parts, x.sd, x.ed, x.rts, x.status
@@ -230,8 +219,7 @@ from (values
   ('WO-2024-003','BKE-002','Garage Peugeot Cocody','Révision moteur',850000,920000,280000,640000,'2024-10-20'::date,null::date,null::date,'in_progress')
 ) as x(ref, reg, garage, "desc", est, act, lab, parts, sd, ed, rts, status)
 join public.vehicles v on v.registration = x.reg and v.organization_id = '11111111-1111-1111-1111-111111111111'
-join public.suppliers s on s.name = x.garage and s.organization_id = '11111111-1111-1111-1111-111111111111'
-on conflict do nothing;
+join public.suppliers s on s.name = x.garage and s.organization_id = '11111111-1111-1111-1111-111111111111';
 
 -- 12. EXPENSES
 insert into public.expenses (organization_id, reference, vehicle_id, category, description, amount, expense_date, payment_method, supplier_id, requested_by, approved_by, status)
@@ -247,8 +235,7 @@ from (values
   ('EXP-2024-008','AB-9012-XY','peages','Péages Bouaké-Béoumi',8000,'2024-10-26'::date,'cash',null::text,'Moussa Touré','Yao Konan','pending')
 ) as x(ref, reg, cat, "desc", amt, ed, pm, sup, req, app, status)
 join public.vehicles v on v.registration = x.reg and v.organization_id = '11111111-1111-1111-1111-111111111111'
-left join public.suppliers s on s.name = x.sup and s.organization_id = '11111111-1111-1111-1111-111111111111'
-on conflict do nothing;
+left join public.suppliers s on s.name = x.sup and s.organization_id = '11111111-1111-1111-1111-111111111111';
 
 -- 13. INVOICES + ITEMS + PAYMENTS
 insert into public.invoices (organization_id, reference, client_id, rental_id, issue_date, due_date, subtotal, total, paid_amount, balance, status)
@@ -263,8 +250,7 @@ from (values
   ('FAC-2024-007','Société SecurPro SARL','LOC-2024-007','2024-09-25'::date,'2024-10-10'::date,250000,250000,250000,0,'paid')
 ) as x(ref, client_name, rental_ref, issue, due, sub, total, paid, bal, status)
 join public.clients c on c.name = x.client_name and c.organization_id = '11111111-1111-1111-1111-111111111111'
-left join public.rentals r on r.reference = x.rental_ref and r.organization_id = '11111111-1111-1111-1111-111111111111'
-on conflict do nothing;
+left join public.rentals r on r.reference = x.rental_ref and r.organization_id = '11111111-1111-1111-1111-111111111111';
 
 insert into public.invoice_items (organization_id, invoice_id, description, quantity, unit_price, total)
 select '11111111-1111-1111-1111-111111111111', i.id, x.desc, x.qty, x.up, x.total
@@ -277,8 +263,7 @@ from (values
   ('FAC-2024-006','Location Mercedes GLE - 3 jours + pénalité retard',3,65000,195000),
   ('FAC-2024-007','Location Toyota Hilux - 5 jours escorte',5,50000,250000)
 ) as x(ref, "desc", qty, up, total)
-join public.invoices i on i.reference = x.ref and i.organization_id = '11111111-1111-1111-1111-111111111111'
-on conflict do nothing;
+join public.invoices i on i.reference = x.ref and i.organization_id = '11111111-1111-1111-1111-111111111111';
 
 insert into public.payments (organization_id, reference, invoice_id, client_id, amount, payment_date, payment_method, account_type)
 select '11111111-1111-1111-1111-111111111111', x.pref, i.id, c.id, x.amt, x.pdt, x.pm, x.at
@@ -291,8 +276,7 @@ from (values
   ('PAY-2024-006','FAC-2024-007','Société SecurPro SARL',250000,'2024-09-26 11:00'::timestamptz,'transfer','bank')
 ) as x(pref, ref, client_name, amt, pdt, pm, at)
 join public.invoices i on i.reference = x.ref and i.organization_id = '11111111-1111-1111-1111-111111111111'
-join public.clients c on c.name = x.client_name and c.organization_id = '11111111-1111-1111-1111-111111111111'
-on conflict do nothing;
+join public.clients c on c.name = x.client_name and c.organization_id = '11111111-1111-1111-1111-111111111111';
 
 -- 14. ACCIDENTS + INCIDENTS + FINES
 insert into public.accidents (organization_id, vehicle_id, driver_id, accident_date, location, description, accident_type, severity, third_parties, injuries, material_damage, estimated_amount, deductible, insurer, status)
@@ -302,8 +286,7 @@ from (values
   ('AB-2345-JK','Ibrahim Cissé','2024-08-20 14:00'::timestamptz,'Route Abidjan-Yamoussoukro','Sortie de route sur chaussée glissante','sortie_route','severe','Aucun','Aucun','Carrosserie avant + suspension',750000,100000,'NSIA Assurance','reimbursed')
 ) as x(reg, driver, adt, loc, "desc", atype, sev, tp, inj, md, est, ded, ins, status)
 join public.vehicles v on v.registration = x.reg and v.organization_id = '11111111-1111-1111-1111-111111111111'
-left join public.drivers d on (d.first_name||' '||d.last_name) = x.driver and d.organization_id = '11111111-1111-1111-1111-111111111111'
-on conflict do nothing;
+left join public.drivers d on (d.first_name||' '||d.last_name) = x.driver and d.organization_id = '11111111-1111-1111-1111-111111111111';
 
 insert into public.incidents (organization_id, vehicle_id, driver_id, incident_type, incident_date, description, resolution, status)
 select '11111111-1111-1111-1111-111111111111', v.id, d.id, x.itype, x.idt, x.desc, x.res, x.status
@@ -314,8 +297,7 @@ from (values
   ('AB-6789-LM','Awa Bamba','probleme_gps','2024-10-16 07:00'::timestamptz,'Traceur GPS ne renvoie plus de position','Fournisseur contacté, redémarrage à distance','open')
 ) as x(reg, driver, itype, idt, "desc", res, status)
 join public.vehicles v on v.registration = x.reg and v.organization_id = '11111111-1111-1111-1111-111111111111'
-left join public.drivers d on (d.first_name||' '||d.last_name) = x.driver and d.organization_id = '11111111-1111-1111-1111-111111111111'
-on conflict do nothing;
+left join public.drivers d on (d.first_name||' '||d.last_name) = x.driver and d.organization_id = '11111111-1111-1111-1111-111111111111';
 
 insert into public.fines (organization_id, vehicle_id, driver_id, fine_date, reason, location, amount, authority, payment_deadline, paid_by, status, salary_deducted)
 select '11111111-1111-1111-1111-111111111111', v.id, d.id, x.fd, x.reason, x.loc, x.amt, x.auth, x.pd, x.pb, x.status, x.sd
@@ -326,8 +308,7 @@ from (values
   ('AB-3456-GH','Koffi Yao','2024-08-30'::date,'Non-respect feu rouge','Yopougon',20000,'Gendarmerie','2024-09-30'::date,'AFC','contested',false)
 ) as x(reg, driver, fd, reason, loc, amt, auth, pd, pb, status, sd)
 join public.vehicles v on v.registration = x.reg and v.organization_id = '11111111-1111-1111-1111-111111111111'
-left join public.drivers d on (d.first_name||' '||d.last_name) = x.driver and d.organization_id = '11111111-1111-1111-1111-111111111111'
-on conflict do nothing;
+left join public.drivers d on (d.first_name||' '||d.last_name) = x.driver and d.organization_id = '11111111-1111-1111-1111-111111111111';
 
 -- 15. GPS DEVICES + DEMO POSITIONS
 insert into public.gps_devices (organization_id, vehicle_id, provider, imei, device_id, sim_phone, installed_at, is_active, battery_level, last_signal_at)
@@ -338,8 +319,7 @@ from (values
   ('AB-3456-GH','861234567890125','TGPS-003','+225 07 00 55 03','2024-01-10 10:00'::timestamptz,75,'2024-10-28 10:00'::timestamptz),
   ('AB-2345-JK','861234567890126','TGPS-004','+225 07 00 55 04','2024-01-10 10:30'::timestamptz,90,'2024-10-28 10:00'::timestamptz)
 ) as x(reg, imei, did, phone, inst, bat, signal)
-join public.vehicles v on v.registration = x.reg and v.organization_id = '11111111-1111-1111-1111-111111111111'
-on conflict do nothing;
+join public.vehicles v on v.registration = x.reg and v.organization_id = '11111111-1111-1111-1111-111111111111';
 
 insert into public.gps_positions (organization_id, vehicle_id, gps_device_id, latitude, longitude, speed, heading, engine_state, battery_level, recorded_at, is_demo)
 select '11111111-1111-1111-1111-111111111111', v.id, g.id, x.lat, x.lng, x.spd, x.hdg, x.eng, x.bat, x.rdt, true
@@ -350,8 +330,7 @@ from (values
   ('AB-2345-JK',5.4100,-4.0200,28,270,'on',90,'2024-10-28 10:00'::timestamptz)
 ) as x(reg, lat, lng, spd, hdg, eng, bat, rdt)
 join public.vehicles v on v.registration = x.reg and v.organization_id = '11111111-1111-1111-1111-111111111111'
-left join public.gps_devices g on g.vehicle_id = v.id and g.organization_id = '11111111-1111-1111-1111-111111111111'
-on conflict do nothing;
+left join public.gps_devices g on g.vehicle_id = v.id and g.organization_id = '11111111-1111-1111-1111-111111111111';
 
 -- 16. NOTIFICATIONS
 insert into public.notifications (organization_id, user_id, type, title, message, severity, link, is_read)
@@ -366,8 +345,7 @@ from (values
   ('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'::uuid,'late_return','Retour en retard','Location LOC-2024-010: retard de restitution, frais appliqués','warning','/rentals',false),
   ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'::uuid,'maintenance_due','Entretien à programmer','Véhicule AB-5678-CD: 4 pneus à remplacer','info','/maintenance',true),
   ('cccccccc-cccc-cccc-cccc-cccccccccccc'::uuid,'breakdown','Véhicule en réparation','Véhicule BKE-002: révision moteur en cours au garage','info','/maintenance',true)
-) as x(u, type, title, msg, sev, link, read)
-on conflict do nothing;
+) as x(u, type, title, msg, severity_type, link, read);
 
 -- 17. AUDIT LOGS
 insert into public.audit_logs (organization_id, user_id, user_email, action, module, entity_type, ip_address, created_at)
@@ -377,5 +355,4 @@ from (values
   ('cccccccc-cccc-cccc-cccc-cccccccccccc'::uuid,'parc@afc.ci','create','vehicles','vehicle','196.20.10.6','2024-10-28 09:15'::timestamptz),
   ('dddddddd-dddd-dddd-dddd-dddddddddddd'::uuid,'finance@afc.ci','financial_change','finance','payment','196.20.10.7','2024-10-28 10:30'::timestamptz),
   ('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'::uuid,'agent@afc.ci','create','rentals','rental','196.20.10.8','2024-10-28 11:00'::timestamptz)
-) as x(u, email, action, module, entity, ip, dt)
-on conflict do nothing;
+) as x(u, email, action, module, entity, ip, dt);
