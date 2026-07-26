@@ -1,6 +1,6 @@
 /*
 # Complete Seed Data (Fixed)
-Consolidated seed data script including agences, categories, clients, suppliers, and the corrected vehicle/driver/rental mock data.
+Consolidated seed data script including agences, categories, clients, suppliers, roles, user roles assignments, and the corrected vehicle/driver/rental mock data.
 */
 
 delete from public.gps_positions;
@@ -27,6 +27,8 @@ delete from public.vehicle_categories;
 delete from public.agencies;
 delete from public.suppliers;
 delete from public.clients;
+delete from public.user_roles;
+delete from public.roles;
 
 -- 1. AGENCIES
 insert into public.agencies (organization_id, name, code, city, address, is_active)
@@ -34,6 +36,25 @@ values
   ('11111111-1111-1111-1111-111111111111', 'Agence Cocody', 'ABJ-COC', 'Abidjan', 'Cocody Boulevard Latrille', true),
   ('11111111-1111-1111-1111-111111111111', 'Agence Yopougon', 'ABJ-YOP', 'Abidjan', 'Yopougon Maroc', true),
   ('11111111-1111-1111-1111-111111111111', 'Agence Bouaké', 'BKE', 'Bouaké', 'Bouaké Commerce', true);
+
+-- 1.5 ROLES & USER ASSIGNMENT
+insert into public.roles (organization_id, code, name, description, is_system, permissions)
+values
+  ('11111111-1111-1111-1111-111111111111', 'org_admin', 'Administrateur entreprise', 'Direction générale — tous droits', true,
+    '["vehicles.read","vehicles.write","drivers.read","drivers.write","clients.read","clients.write","rentals.read","rentals.write","missions.read","missions.write","movements.read","movements.write","maintenance.read","maintenance.write","fuel.read","fuel.write","finance.read","finance.write","reports.read","settings.read","settings.write","users.read","users.write","audit.read","documents.read","documents.write","notifications.read","gps.read"]'::jsonb),
+  ('11111111-1111-1111-1111-111111111111', 'parc_manager', 'Responsable parc', 'Gestion du parc et des chauffeurs', true,
+    '["vehicles.read","vehicles.write","drivers.read","drivers.write","clients.read","rentals.read","rentals.write","missions.read","missions.write","movements.read","movements.write","maintenance.read","maintenance.write","fuel.read","fuel.write","reports.read","documents.read","notifications.read","gps.read"]'::jsonb),
+  ('11111111-1111-1111-1111-111111111111', 'accountant', 'Comptable', 'Gestion financière', true,
+    '["vehicles.read","drivers.read","clients.read","rentals.read","missions.read","finance.read","finance.write","reports.read","documents.read","notifications.read"]'::jsonb),
+  ('11111111-1111-1111-1111-111111111111', 'rental_agent', 'Agent de location', 'Saisie des locations et clients', true,
+    '["vehicles.read","drivers.read","clients.read","clients.write","rentals.read","rentals.write","movements.read","movements.write","fuel.read","documents.read","notifications.read"]'::jsonb);
+
+-- Automatically assign the org_admin role to the administrator 'director@afc.ci'
+insert into public.user_roles (user_id, role_id, organization_id)
+select up.id, r.id, up.organization_id
+from public.user_profiles up
+join public.roles r on r.organization_id = up.organization_id and r.code = 'org_admin'
+where up.email = 'director@afc.ci';
 
 -- 2. VEHICLE CATEGORIES
 insert into public.vehicle_categories (organization_id, name, code, description)
@@ -65,16 +86,16 @@ insert into public.clients (organization_id, type, name, representative, contact
 values
   ('11111111-1111-1111-1111-111111111111', 'company','BTP Construction Plus SARL','Marc Kouadio','Marc Kouadio','+225 27 22 33 44 55','contact@btpplus.ci','Zone 4, Abidjan','CI-BTP-4455','CI-ABJ-2018-123',5000000,30,'low','active','Client fidèle, 3-4 locations/mois'),
   ('11111111-1111-1111-1111-111111111111', 'company','Groupe Hôtelier Azur','Sophia Bamba','Sophia Bamba','+225 27 22 33 44 56','s.bamba@azur-hotels.com','Bingerville','CI-AZU-5566',null,3000000,15,'low','active','Navette aéroport régulière'),
-  ('11111111-1111-1111-1111-111111111111', 'individual','Jean-Marc Aka',null,'Jean-Marc Aka','+225 07 77 88 99 00','jm.aka@gmail.com','Cocody Riviera 3',null,null,500000,0,'low','active','Client particulier premium'),
-  ('11111111-1111-1111-1111-111111111111', 'administration','Ministère des Transports','Directeur de Cabinet','Adjoua Koné','+225 27 22 33 44 57','cabinet@transports.gouv.ci','Plateau, Abidjan',null,null,10000000,45,'low','active','Missions administratives'),
-  ('11111111-1111-1111-1111-111111111111', 'ngo','Croix Rouge Côte d''Ivoire','Coordonnateur Logistique','Ibrahim Cissé','+225 27 22 33 44 58','logistique@crci.org','Cocody Angré',null,null,4000000,30,'low','active','Transport humanitaire'),
+  ('11111111-1111-1111-1111-111111111111', 'individual','Jean-Marc Aka',null,'Jean-Marc Aka','+225 07 77 88 99 00','jm.aka@gmail.com','Cocody Riviera 3',null::text,null::text,500000,0,'low','active','Client particulier premium'),
+  ('11111111-1111-1111-1111-111111111111', 'administration','Ministère des Transports','Directeur de Cabinet','Adjoua Koné','+225 27 22 33 44 57','cabinet@transports.gouv.ci','Plateau, Abidjan',null::text,null::text,10000000,45,'low','active','Missions administratives'),
+  ('11111111-1111-1111-1111-111111111111', 'ngo','Croix Rouge Côte d''Ivoire','Coordonnateur Logistique','Ibrahim Cissé','+225 27 22 33 44 58','logistique@crci.org','Cocody Angré',null::text,null::text,4000000,30,'low','active','Transport humanitaire'),
   ('11111111-1111-1111-1111-111111111111', 'company','Société SecurPro SARL','CEO','Paul Gnagne','+225 07 77 88 99 01','p.gnagne@securpro.ci','Marcory Zone 3','CI-SEC-7788','CI-ABJ-2019-456',8000000,15,'medium','active','Escorte VIP'),
-  ('11111111-1111-1111-1111-111111111111', 'individual','Aminata Traoré',null,'Aminata Traoré','+225 07 77 88 99 02','a.traore@yahoo.fr','Yopougon Selmer',null,null,300000,0,'low','active','Location week-end'),
-  ('11111111-1111-1111-1111-111111111111', 'company','TransPlus Logistique','DG','Bakary Fofana','+225 27 22 33 44 59','b.fofana@transplus.ci','Vridi',null,'CI-ABJ-2017-789',6000000,30,'medium','active','Convoyage marchandises'),
-  ('11111111-1111-1111-1111-111111111111', 'company','Eventis Organisation','Manager','Christelle Aya','+225 07 77 88 99 03','c.aya@eventis.ci','Cocody',null,'CI-ABJ-2020-321',2000000,15,'high','active','Événementiel, paiements parfois en retard'),
-  ('11111111-1111-1111-1111-111111111111', 'individual','Dr. Paul Yapi',null,'Dr. Paul Yapi','+225 07 77 88 99 04','p.yapi@med.ci','Cocody Riviera 2',null,null,1000000,0,'low','active','Médecin, location ponctuelle'),
-  ('11111111-1111-1111-1111-111111111111', 'partner','Agence Voyage Discovery','Responsable','Roger Tanoh','+225 27 22 33 44 60','r.tanoh@discovery.ci','Plateau',null,null,5000000,15,'low','active','Partenaire touristique'),
-  ('11111111-1111-1111-1111-111111111111', 'company','BuildMat Côte d''Ivoire','Directeur Logistique','Adama Soro','+225 27 22 33 44 61','a.soro@buildmat.ci','Yopougon',null,'CI-ABJ-2016-654',4000000,30,'medium','suspended','Retard de paiement');
+  ('11111111-1111-1111-1111-111111111111', 'individual','Aminata Traoré',null::text,'Aminata Traoré','+225 07 77 88 99 02','a.traore@yahoo.fr','Yopougon Selmer',null::text,null::text,300000,0,'low','active','Location week-end'),
+  ('11111111-1111-1111-1111-111111111111', 'company','TransPlus Logistique','DG','Bakary Fofana','+225 27 22 33 44 59','b.fofana@transplus.ci','Vridi',null::text,'CI-ABJ-2017-789',6000000,30,'medium','active','Convoyage marchandises'),
+  ('11111111-1111-1111-1111-111111111111', 'company','Eventis Organisation','Manager','Christelle Aya','+225 07 77 88 99 03','c.aya@eventis.ci','Cocody',null::text,'CI-ABJ-2020-321',2000000,15,'high','active','Événementiel, paiements parfois en retard'),
+  ('11111111-1111-1111-1111-111111111111', 'individual','Dr. Paul Yapi',null::text,'Dr. Paul Yapi','+225 07 77 88 99 04','p.yapi@med.ci','Cocody Riviera 2',null::text,null::text,1000000,0,'low','active','Médecin, location ponctuelle'),
+  ('11111111-1111-1111-1111-111111111111', 'partner','Agence Voyage Discovery','Responsable','Roger Tanoh','+225 27 22 33 44 60','r.tanoh@discovery.ci','Plateau',null::text,null::text,5000000,15,'low','active','Partenaire touristique'),
+  ('11111111-1111-1111-1111-111111111111', 'company','BuildMat Côte d''Ivoire','Directeur Logistique','Adama Soro','+225 27 22 33 44 61','a.soro@buildmat.ci','Yopougon',null::text,'CI-ABJ-2016-654',4000000,30,'medium','suspended','Retard de paiement');
 
 -- 5. VEHICLES
 insert into public.vehicles (organization_id, agency_id, category_id, internal_number, registration, vin, brand, model, category, vehicle_type, color, year_manufactured, fuel_type, tank_capacity, estimated_consumption, transmission, seats, current_mileage, ownership_type, owner_name, purchase_price, estimated_value, monthly_depreciation, status, availability, notes)
@@ -127,6 +148,7 @@ from (values
 join public.agencies a on a.code = x.agency_code and a.organization_id = '11111111-1111-1111-1111-111111111111';
 
 -- 7. VEHICLE DOCUMENTS
+insert into public.vehicle_documents (organization_id, vehicle_id, type, document_number, issuer, start_date, expiry_date, cost, status, file_url, reminder_enabled, responsible)
 select '11111111-1111-1111-1111-111111111111', v.id, x.type, x.document_number, x.issuer, x.start_date, x.expiry_date, x.cost, x.status, x.file_url, x.reminder_enabled, x.responsible
 from (values
   ('AB-1234-AB','insurance','POL-2024-001','NSIA Assurance','2024-01-15'::date,'2025-01-14'::date,450000,'valid',null::text,true,'Fatou'),
