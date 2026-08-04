@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, NavLink } from 'react-router-dom';
+import { useNavigate, NavLink, useLocation } from 'react-router-dom';
 import { Menu, Bell, Sun, Moon, LogOut, Search, ChevronDown, Truck } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { useTheme } from '../lib/theme';
@@ -20,6 +20,7 @@ export function Header({ onMenuClick }: HeaderProps) {
   const { can, isPlatformAdmin } = usePermissions();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
   const [notifOpen, setNotifOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -114,11 +115,23 @@ export function Header({ onMenuClick }: HeaderProps) {
             );
           }
 
+          const isSectionActive = items.some((item) =>
+            location.pathname === item.to || (item.to !== '/dashboard' && location.pathname.startsWith(item.to))
+          );
+
           return (
             <div key={section.title} className="relative group">
-              <button className="px-2.5 py-1.5 text-xs xl:text-sm font-semibold rounded-lg text-ink-600 dark:text-ink-400 hover:text-ink-900 dark:hover:text-ink-100 hover:bg-ink-100/50 dark:hover:bg-ink-800/50 transition-colors flex items-center gap-1">
+              <button className={cn(
+                "px-2.5 py-1.5 text-xs xl:text-sm font-semibold rounded-lg transition-colors flex items-center gap-1",
+                isSectionActive 
+                  ? "text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10 font-semibold" 
+                  : "text-ink-600 dark:text-ink-400 hover:text-ink-900 dark:hover:text-ink-100 hover:bg-ink-100/50 dark:hover:bg-ink-800/50"
+              )}>
                 <span>{section.title}</span>
-                <ChevronDown className="w-3.5 h-3.5 text-ink-400 group-hover:rotate-180 transition-transform duration-200" />
+                <ChevronDown className={cn(
+                  "w-3.5 h-3.5 transition-transform duration-200 group-hover:rotate-180",
+                  isSectionActive ? "text-blue-500 dark:text-blue-400" : "text-ink-400"
+                )} />
               </button>
               
               {/* Dropdown Menu */}

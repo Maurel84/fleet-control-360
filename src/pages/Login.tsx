@@ -4,12 +4,20 @@ import { Truck, Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, BarChart3, Map
 import { useAuth } from '../lib/auth';
 import { useToast } from '../lib/toast';
 import { supabase } from '../lib/supabase';
+import { cn } from '../lib/cn';
 
 const DEMO_ACCOUNTS = [
   { email: 'director@afc.ci', label: 'Directeur' },
   { email: 'parc@afc.ci', label: 'Responsable parc' },
   { email: 'finance@afc.ci', label: 'Finance' },
   { email: 'agent@afc.ci', label: 'Agent' },
+];
+
+const VEHICLE_BACKGROUNDS = [
+  'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=1200&q=80',
+  'https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&w=1200&q=80',
+  'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1200&q=80',
+  'https://images.unsplash.com/photo-1506015391300-4802dc74de2e?auto=format&fit=crop&w=1200&q=80'
 ];
 
 export function Login() {
@@ -27,6 +35,15 @@ export function Login() {
     logoUrl: localStorage.getItem('fc360-login-logo') || '',
     primaryColor: localStorage.getItem('fc360-login-color') || '#1e40af'
   });
+
+  const [activeBgIndex, setActiveBgIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveBgIndex((prev) => (prev + 1) % VEHICLE_BACKGROUNDS.length);
+    }, 6000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Dynamic branding lookup when email matches standard format
   useEffect(() => {
@@ -80,10 +97,31 @@ export function Login() {
       {/* Left brand panel */}
       <div 
         className="hidden lg:flex lg:w-1/2 relative overflow-hidden transition-all duration-500 ease-in-out"
-        style={{ backgroundImage: `linear-gradient(to bottom right, ${orgBranding.primaryColor}, #020617)` }}
+        style={{ backgroundColor: '#020617' }}
       >
-        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 20% 30%, white 1px, transparent 1px), radial-gradient(circle at 80% 60%, white 1px, transparent 1px)', backgroundSize: '48px 48px' }} />
-        <div className="relative flex flex-col justify-between p-12 text-white w-full">
+        {/* Background Slideshow of Vehicles */}
+        {VEHICLE_BACKGROUNDS.map((src, index) => (
+          <div
+            key={src}
+            className={cn(
+              "absolute inset-0 bg-cover bg-center transition-all duration-[2000ms] ease-in-out",
+              index === activeBgIndex ? "opacity-35 scale-105" : "opacity-0 scale-100"
+            )}
+            style={{ backgroundImage: `url(${src})` }}
+          />
+        ))}
+
+        {/* Dynamic Color brand overlay */}
+        <div 
+          className="absolute inset-0 transition-colors duration-1000 ease-in-out z-10"
+          style={{ backgroundImage: `linear-gradient(to bottom right, ${orgBranding.primaryColor}D9, #020617F2)` }}
+        />
+
+        {/* Grid pattern */}
+        <div className="absolute inset-0 opacity-10 z-10" style={{ backgroundImage: 'radial-gradient(circle at 20% 30%, white 1px, transparent 1px), radial-gradient(circle at 80% 60%, white 1px, transparent 1px)', backgroundSize: '48px 48px' }} />
+
+        {/* Brand content */}
+        <div className="relative flex flex-col justify-between p-12 text-white w-full h-full z-20">
           <div className="flex items-center gap-3">
             {orgBranding.logoUrl ? (
               <img src={orgBranding.logoUrl} alt="Logo" className="w-11 h-11 object-contain rounded-xl bg-white/10 p-1" />
