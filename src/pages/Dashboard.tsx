@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { cn } from '../lib/cn';
 import {
   PieChart, Pie, Cell, AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
@@ -27,8 +28,15 @@ const STATUS_HEX: Record<string, string> = {
   accident: '#ef4444', seized: '#78716c', out_of_service: '#78716c', sold: '#78716c',
 };
 
+const VEHICLE_BACKGROUNDS = [
+  'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=1200&q=80',
+  'https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&w=1200&q=80',
+  'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1200&q=80',
+  'https://images.unsplash.com/photo-1506015391300-4802dc74de2e?auto=format&fit=crop&w=1200&q=80'
+];
+
 export function Dashboard() {
-  const { profile, user } = useAuth();
+  const { profile, user, organization } = useAuth();
   const orgId = profile?.organization_id;
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [rentals, setRentals] = useState<Rental[]>([]);
@@ -40,6 +48,15 @@ export function Dashboard() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [sales, setSales] = useState<SalesDeal[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const [activeBgIndex, setActiveBgIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveBgIndex((prev) => (prev + 1) % VEHICLE_BACKGROUNDS.length);
+    }, 6000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (!orgId || !user) return;
@@ -172,12 +189,56 @@ export function Dashboard() {
     );
   }
 
+  const orgColor = organization?.primary_color || '#1e40af';
+  const orgName = organization?.name || 'FleetControl 360';
+
   return (
     <div className="animate-fade-in">
       <PageHeader
         title="Tableau de bord"
         subtitle={`Bonjour ${profile?.full_name?.split(' ')[0] ?? ''}, voici l'état de votre flotte`}
       />
+
+      {/* Welcome Banner Card with sliding vehicle background */}
+      <div 
+        className="relative overflow-hidden rounded-2xl p-6 md:p-8 text-white mb-6 shadow-md transition-all duration-300"
+        style={{ backgroundColor: '#020617' }}
+      >
+        {/* Background Slideshow */}
+        {VEHICLE_BACKGROUNDS.map((src, index) => (
+          <div
+            key={src}
+            className={cn(
+              "absolute inset-0 bg-cover bg-center transition-all duration-[2000ms] ease-in-out",
+              index === activeBgIndex ? "opacity-25 scale-105" : "opacity-0 scale-100"
+            )}
+            style={{ backgroundImage: `url(${src})` }}
+          />
+        ))}
+
+        {/* Brand color overlay */}
+        <div 
+          className="absolute inset-0 transition-colors duration-1000 ease-in-out z-10"
+          style={{ backgroundImage: `linear-gradient(to bottom right, ${orgColor}E6, #020617F2)` }}
+        />
+
+        {/* Grid pattern */}
+        <div className="absolute inset-0 opacity-10 z-10" style={{ backgroundImage: 'radial-gradient(circle at 20% 30%, white 1px, transparent 1px), radial-gradient(circle at 80% 60%, white 1px, transparent 1px)', backgroundSize: '48px 48px' }} />
+
+        {/* Content */}
+        <div className="relative z-20 max-w-xl">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/20 backdrop-blur-md mb-4 text-blue-100">
+            <Truck className="w-3.5 h-3.5" />
+            Portail de gestion FleetControl 360
+          </span>
+          <h2 className="text-2xl md:text-3xl font-bold tracking-tight mb-2">
+            Bonjour, {profile?.full_name?.split(' ')[0] ?? 'Gestionnaire'} !
+          </h2>
+          <p className="text-sm md:text-base text-blue-100/90 leading-relaxed">
+            Ravi de vous revoir. Voici un aperçu global des opérations, de l'état du parc de véhicules et des finances de votre entreprise <strong>{orgName}</strong> aujourd'hui.
+          </p>
+        </div>
+      </div>
 
       {/* KPI cards - 5 colonnes */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
